@@ -419,6 +419,12 @@ def settings():
         cur.close(); conn.close()
     return render_template("settings.html")
 
+# Uygulama başlarken tabloları oluştur
+with app.app_context():
+    try:
+        init_db()
+    except Exception as e:
+        print(f"DB init error: {e}")
+
 if __name__ == "__main__":
-    init_db()
     app.run(debug=True)
