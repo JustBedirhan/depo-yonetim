@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-header">
+  <h1>{{ t('add_movement') }}</h1>
+</div>
+
+<div class="card form-card">
+  {% if products %}
+  <form method="POST" id="mov-form">
+
+    <div class="mov-toggle">
+      <label class="mov-option" id="opt-in">
+        <input type="radio" name="type" value="in" checked>
+        <span>＋ {{ t('type_in') }}</span>
+      </label>
+      <label class="mov-option" id="opt-out">
+        <input type="radio" name="type" value="out">
+        <span>－ {{ t('type_out') }}</span>
+      </label>
+    </div>
+
+    <div class="field">
+      <label>{{ t('product') }}</label>
+      <select name="product_id" id="product-sel" required>
+        <option value="">— Seçin / Select —</option>
+        {% for p in products %}
+        <option value="{{ p.id }}" data-stock="{{ p.stock }}" data-unit="{{ p.unit }}">
+          {{ p.name }} — {{ p.stock }} {{ p.unit }}
+        </option>
+        {% endfor %}
+      </select>
+      <div id="stock-info" class="field-hint" style="display:none"></div>
+    </div>
+
+    <div class="field">
+      <label>{{ t('quantity') }}</label>
+      <input type="number" name="quantity" id="qty-input"
+             min="1" value="1" required>
+    </div>
+
+    <div class="field">
+      <label>{{ t('note') }}</label>
+      <input type="text" name="note"
+             placeholder="Örn: Tedarikçi teslimatı, Sipariş #42...">
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
+        ✓ {{ t('save') }}
+      </button>
+    </div>
+  </form>
+  {% else %}
+  <p class="empty-state">
+    {{ t('no_products') }}
+    <a href="{{ url_for('product_add') }}" class="btn btn-primary" style="margin-top:1rem;display:inline-block">
+      + {{ t('add_product') }}
+    </a>
+  </p>
+  {% endif %}
+</div>
+
+<script>
+const sel  = document.getElementById('product-sel');
+const info = document.getElementById('stock-info');
+const radios = document.querySelectorAll('input[name="type"]');
+const optIn  = document.getElementById('opt-in');
+const optOut = document.getElementById('opt-out');
+
+radios.forEach(r => r.addEventListener('change', () => {
+  optIn.classList.toggle('selected', r.value==='in' && r.checked);
+  optOut.classList.toggle('selected', r.value==='out' && r.checked);
+}));
+optIn.classList.add('selected');
+
+sel.addEventListener('change', () => {
+  const opt = sel.selectedOptions[0];
+  if (!opt.value) { info.style.display='none'; return; }
+  info.style.display = 'block';
+  info.textContent = `Mevcut stok: ${opt.dataset.stock} ${opt.dataset.unit}`;
+});
+</script>
+
+{% endblock %}

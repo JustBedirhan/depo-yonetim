@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-header">
+  <h1>{{ t('history') }}</h1>
+</div>
+
+<div class="card">
+  {% if movements %}
+  <table class="table table-full">
+    <thead>
+      <tr>
+        <th>{{ t('date') }}</th>
+        <th>{{ t('product') }}</th>
+        <th>{{ t('type_in') }}/{{ t('type_out') }}</th>
+        <th>{{ t('quantity') }}</th>
+        <th>{{ t('remaining') }}</th>
+        <th>{{ t('note') }}</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in movements %}
+      <tr>
+        <td class="text-muted text-sm">{{ m.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+        <td><strong>{{ m.name }}</strong></td>
+        <td>
+          <span class="badge {{ 'badge-green' if m.type=='in' else 'badge-red' }}">
+            {{ t('type_in') if m.type=='in' else t('type_out') }}
+          </span>
+        </td>
+        <td class="{{ 'text-green' if m.type=='in' else 'text-red' }} text-bold">
+          {{ '+' if m.type=='in' else '−' }}{{ m.quantity }}
+        </td>
+        <td>{{ m.stock_after }}</td>
+        <td class="text-muted text-sm">{{ m.note or '—' }}</td>
+        <td>
+          <form method="POST" action="{{ url_for('undo_movement', mid=m.id) }}"
+                onsubmit="return confirm('{{ t('undo_confirm') }}')">
+            <button type="submit" class="btn btn-danger btn-sm" title="{{ t('undo') }}">✕</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty-state">{{ t('no_movements') }}</p>
+  {% endif %}
+</div>
+
+{% endblock %}

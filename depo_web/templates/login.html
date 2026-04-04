@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Depo — Giriş</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="login-page">
+<div class="login-card">
+  <div class="login-logo">📦</div>
+  <h1>Depo Yönetimi</h1>
+  <p class="login-sub">Warehouse Management</p>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-bar" style="margin-bottom:1rem">
+        {% for msg in messages %}<span>{{ msg }}</span>{% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" class="login-form">
+    <div class="field">
+      <label>Kullanıcı Adı / Username</label>
+      <input type="text" name="username" required autofocus placeholder="admin">
+    </div>
+    <div class="field">
+      <label>Şifre / Password</label>
+      <input type="password" name="password" required placeholder="••••••••">
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">Giriş Yap / Login</button>
+  </form>
+
+  <p class="login-hint">Varsayılan: admin / admin123</p>
+</div>
+</body>
+</html>

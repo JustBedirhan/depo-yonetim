@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang','tr') }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Depo Yönetimi</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-icon">📦</span>
+    <span class="logo-text">Depo</span>
+  </div>
+
+  <ul class="nav-links">
+    <li><a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint=='dashboard' }}">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      {{ t('dashboard') }}
+    </a></li>
+    <li><a href="{{ url_for('products') }}" class="{{ 'active' if request.endpoint in ['products','product_add','product_edit'] }}">
+      <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      {{ t('products') }}
+    </a></li>
+    <li><a href="{{ url_for('movements') }}" class="{{ 'active' if request.endpoint=='movements' }}">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+      {{ t('movements') }}
+    </a></li>
+    <li><a href="{{ url_for('history') }}" class="{{ 'active' if request.endpoint=='history' }}">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      {{ t('history') }}
+    </a></li>
+    <li><a href="{{ url_for('settings') }}" class="{{ 'active' if request.endpoint=='settings' }}">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      {{ t('settings') }}
+    </a></li>
+  </ul>
+
+  <div class="sidebar-bottom">
+    <div class="lang-switch">
+      <a href="{{ url_for('set_lang','tr') }}" class="{{ 'active' if session.get('lang','tr')=='tr' }}">TR</a>
+      <span>|</span>
+      <a href="{{ url_for('set_lang','en') }}" class="{{ 'active' if session.get('lang','tr')=='en' }}">EN</a>
+    </div>
+    <a href="{{ url_for('logout') }}" class="logout-btn">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      {{ t('logout') }}
+    </a>
+  </div>
+</nav>
+
+<main class="main-content">
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-bar">
+        {% for msg in messages %}
+          <span>{{ msg }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

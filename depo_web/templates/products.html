@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-header">
+  <h1>{{ t('products') }}</h1>
+  <a href="{{ url_for('product_add') }}" class="btn btn-primary">+ {{ t('add_product') }}</a>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <form method="GET" class="search-form">
+      <input type="text" name="q" value="{{ q }}" placeholder="{{ t('search') }}" class="search-input">
+      <button type="submit" class="btn btn-ghost">🔍</button>
+      {% if q %}<a href="{{ url_for('products') }}" class="btn btn-ghost">✕</a>{% endif %}
+    </form>
+  </div>
+
+  {% if products %}
+  <div class="product-grid">
+    {% for p in products %}
+    {% set st = 'ok' if p.stock > p.min_stock else ('out' if p.stock <= 0 else 'low') %}
+    <div class="product-card">
+      <div class="product-card-top">
+        <div class="product-avatar {{ st }}">
+          {{ p.name[0].upper() }}
+        </div>
+        <div class="product-info">
+          <div class="product-name">{{ p.name }}</div>
+          <div class="product-cat text-muted">{{ p.category or '—' }}</div>
+        </div>
+      </div>
+      <div class="product-stock">
+        <span class="stock-num {{ 'text-red' if p.stock<=0 else ('text-orange' if p.stock<=p.min_stock else 'text-green') }}">
+          {{ p.stock }}
+        </span>
+        <span class="stock-unit text-muted">{{ p.unit }}</span>
+      </div>
+      <div class="product-meta text-muted">
+        Min: {{ p.min_stock }} {{ p.unit }}
+      </div>
+      <div class="product-status">
+        <span class="badge {{ 'badge-green' if st=='ok' else ('badge-red' if st=='out' else 'badge-orange') }}">
+          {{ t('status_ok') if st=='ok' else (t('status_out') if st=='out' else t('status_low')) }}
+        </span>
+      </div>
+      <div class="product-actions">
+        <a href="{{ url_for('product_edit', pid=p.id) }}" class="btn btn-ghost btn-sm">{{ t('edit') }}</a>
+        <form method="POST" action="{{ url_for('product_delete', pid=p.id) }}"
+              onsubmit="return confirm('{{ t('confirm_delete') }}')">
+          <button type="submit" class="btn btn-danger btn-sm">{{ t('delete') }}</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="empty-state">{{ t('no_products') }}</p>
+  {% endif %}
+</div>
+
+{% endblock %}

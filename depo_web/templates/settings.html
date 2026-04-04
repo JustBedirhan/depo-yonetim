@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-header">
+  <h1>{{ t('settings') }}</h1>
+</div>
+
+<div class="card form-card">
+  <h2 style="margin-bottom:1.5rem;font-size:1rem;color:var(--text-muted)">{{ t('change_password') }}</h2>
+  <form method="POST">
+    <div class="field">
+      <label>{{ t('current_password') }}</label>
+      <input type="password" name="current_password" required>
+    </div>
+    <div class="field">
+      <label>{{ t('new_password') }}</label>
+      <input type="password" name="new_password" required minlength="6">
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">{{ t('save') }}</button>
+    </div>
+  </form>
+</div>
+
+<div class="card form-card" style="margin-top:1rem">
+  <h2 style="margin-bottom:1rem;font-size:1rem;color:var(--text-muted)">{{ t('language') }}</h2>
+  <div style="display:flex;gap:0.75rem">
+    <a href="{{ url_for('set_lang','tr') }}"
+       class="btn {{ 'btn-primary' if session.get('lang','tr')=='tr' else 'btn-ghost' }}">
+      🇹🇷 Türkçe
+    </a>
+    <a href="{{ url_for('set_lang','en') }}"
+       class="btn {{ 'btn-primary' if session.get('lang','tr')=='en' else 'btn-ghost' }}">
+      🇬🇧 English
+    </a>
+  </div>
+</div>
+
+{% endblock %}
