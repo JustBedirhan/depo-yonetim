@@ -25,11 +25,11 @@
 <div class="card form-card" style="margin-top:1rem">
   <h2 style="margin-bottom:1rem;font-size:1rem;color:var(--text-muted)">{{ t('language') }}</h2>
   <div style="display:flex;gap:0.75rem">
-    <a href="{{ url_for('set_lang','tr') }}"
+    <a href="{{ url_for('set_lang', code='tr') }}"
        class="btn {{ 'btn-primary' if session.get('lang','tr')=='tr' else 'btn-ghost' }}">
       🇹🇷 Türkçe
     </a>
-    <a href="{{ url_for('set_lang','en') }}"
+    <a href="{{ url_for('set_lang', code='en') }}"
        class="btn {{ 'btn-primary' if session.get('lang','tr')=='en' else 'btn-ghost' }}">
       🇬🇧 English
     </a>
