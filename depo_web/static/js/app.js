@@ -9,3 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 4000);
   }
 });
+  function toggleMenu() {
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
