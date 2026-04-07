@@ -5,81 +5,197 @@
   <h1>{{ t('add_movement') }}</h1>
 </div>
 
-<div class="card form-card">
-  {% if products %}
-  <form method="POST" id="mov-form">
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('tek')">Tek Ürün</button>
+  <button class="tab-btn" onclick="switchTab('toplu')">Toplu İşlem</button>
+</div>
 
-    <div class="mov-toggle">
-      <label class="mov-option" id="opt-in">
-        <input type="radio" name="type" value="in" checked>
-        <span>＋ {{ t('type_in') }}</span>
-      </label>
-      <label class="mov-option" id="opt-out">
-        <input type="radio" name="type" value="out">
-        <span>－ {{ t('type_out') }}</span>
-      </label>
-    </div>
+<!-- TEK ÜRÜN -->
+<div id="tab-tek" class="tab-content">
+  <div class="card form-card">
+    {% if products %}
+    <form method="POST" action="{{ url_for('movements') }}">
+      <div class="mov-toggle">
+        <label class="mov-option" id="opt-in">
+          <input type="radio" name="type" value="in" checked>
+          <span>＋ {{ t('type_in') }}</span>
+        </label>
+        <label class="mov-option" id="opt-out">
+          <input type="radio" name="type" value="out">
+          <span>－ {{ t('type_out') }}</span>
+        </label>
+      </div>
+      <div class="field">
+        <label>{{ t('product') }}</label>
+        <select name="product_id" id="product-sel" required>
+          <option value="">— Seçin / Select —</option>
+          {% for p in products %}
+          <option value="{{ p.id }}" data-stock="{{ p.stock }}" data-unit="{{ p.unit }}">
+            {{ p.name }} — {{ p.stock }} {{ p.unit }}
+          </option>
+          {% endfor %}
+        </select>
+        <div id="stock-info" class="field-hint" style="display:none"></div>
+      </div>
+      <div class="field">
+        <label>{{ t('quantity') }}</label>
+        <input type="number" name="quantity" min="1" value="1" required>
+      </div>
+      <div class="field">
+        <label>{{ t('note') }}</label>
+        <input type="text" name="note" placeholder="Örn: Tedarikçi teslimatı...">
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-lg">✓ {{ t('save') }}</button>
+      </div>
+    </form>
+    {% else %}
+    <p class="empty-state">
+      {{ t('no_products') }}
+      <a href="{{ url_for('product_add') }}" class="btn btn-primary" style="margin-top:1rem;display:inline-block">
+        + {{ t('add_product') }}
+      </a>
+    </p>
+    {% endif %}
+  </div>
+</div>
 
-    <div class="field">
-      <label>{{ t('product') }}</label>
-      <select name="product_id" id="product-sel" required>
-        <option value="">— Seçin / Select —</option>
-        {% for p in products %}
-        <option value="{{ p.id }}" data-stock="{{ p.stock }}" data-unit="{{ p.unit }}">
-          {{ p.name }} — {{ p.stock }} {{ p.unit }}
-        </option>
-        {% endfor %}
-      </select>
-      <div id="stock-info" class="field-hint" style="display:none"></div>
-    </div>
-
-    <div class="field">
-      <label>{{ t('quantity') }}</label>
-      <input type="number" name="quantity" id="qty-input"
-             min="1" value="1" required>
-    </div>
-
-    <div class="field">
-      <label>{{ t('note') }}</label>
-      <input type="text" name="note"
-             placeholder="Örn: Tedarikçi teslimatı, Sipariş #42...">
-    </div>
-
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
-        ✓ {{ t('save') }}
-      </button>
-    </div>
-  </form>
-  {% else %}
-  <p class="empty-state">
-    {{ t('no_products') }}
-    <a href="{{ url_for('product_add') }}" class="btn btn-primary" style="margin-top:1rem;display:inline-block">
-      + {{ t('add_product') }}
-    </a>
-  </p>
-  {% endif %}
+<!-- TOPLU İŞLEM -->
+<div id="tab-toplu" class="tab-content" style="display:none">
+  <div class="card form-card">
+    {% if products %}
+    <form method="POST" action="{{ url_for('bulk_movements') }}" id="bulk-form">
+      <div class="mov-toggle" style="margin-bottom:20px">
+        <label class="mov-option" id="bulk-opt-in">
+          <input type="radio" name="bulk_type" value="in" checked>
+          <span>＋ {{ t('type_in') }}</span>
+        </label>
+        <label class="mov-option" id="bulk-opt-out">
+          <input type="radio" name="bulk_type" value="out">
+          <span>－ {{ t('type_out') }}</span>
+        </label>
+      </div>
+      <div class="field" style="margin-bottom:16px">
+        <label>Not (tüm ürünler için)</label>
+        <input type="text" name="bulk_note" placeholder="Örn: Haftalık sayım...">
+      </div>
+      <input type="text" id="bulk-search" placeholder="Ürün filtrele..."
+             class="search-input" style="width:100%;margin-bottom:12px"
+             oninput="filterBulk(this.value)">
+      <div class="bulk-table-wrap">
+        <table class="table bulk-table">
+          <thead>
+            <tr>
+              <th style="width:40px"><input type="checkbox" id="check-all" onchange="toggleAll(this)"></th>
+              <th>Ürün</th>
+              <th>Mevcut Stok</th>
+              <th style="width:140px">Miktar</th>
+            </tr>
+          </thead>
+          <tbody id="bulk-tbody">
+            {% for p in products %}
+            <tr class="bulk-row" data-name="{{ p.name.lower() }}">
+              <td><input type="checkbox" class="bulk-check" name="selected_ids" value="{{ p.id }}" onchange="toggleRow(this)"></td>
+              <td>
+                <strong>{{ p.name }}</strong>
+                {% if p.category %}<br><span class="text-muted text-sm">{{ p.category }}</span>{% endif %}
+              </td>
+              <td>
+                <span class="{{ 'text-red' if p.stock<=0 else ('text-orange' if p.stock<=p.min_stock else 'text-green') }}">
+                  {{ p.stock }} {{ p.unit }}
+                </span>
+              </td>
+              <td>
+                <input type="number" name="qty_{{ p.id }}" min="1" value="1"
+                       class="bulk-qty" disabled
+                       style="width:100px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#F8F8F6;color:var(--text-muted)">
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="bulk-summary" id="bulk-summary" style="display:none">
+        <span id="bulk-count">0</span> ürün seçildi
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="clearBulk()">Temizle</button>
+        <button type="submit" class="btn btn-primary btn-lg" id="bulk-submit" disabled>✓ Toplu Kaydet</button>
+      </div>
+    </form>
+    {% else %}
+    <p class="empty-state">{{ t('no_products') }}</p>
+    {% endif %}
+  </div>
 </div>
 
 <script>
-const sel  = document.getElementById('product-sel');
-const info = document.getElementById('stock-info');
-const radios = document.querySelectorAll('input[name="type"]');
-const optIn  = document.getElementById('opt-in');
-const optOut = document.getElementById('opt-out');
-
-radios.forEach(r => r.addEventListener('change', () => {
-  optIn.classList.toggle('selected', r.value==='in' && r.checked);
-  optOut.classList.toggle('selected', r.value==='out' && r.checked);
-}));
-optIn.classList.add('selected');
-
-sel.addEventListener('change', () => {
-  const opt = sel.selectedOptions[0];
-  if (!opt.value) { info.style.display='none'; return; }
-  info.style.display = 'block';
-  info.textContent = `Mevcut stok: ${opt.dataset.stock} ${opt.dataset.unit}`;
+function switchTab(tab) {
+  document.getElementById('tab-tek').style.display   = tab==='tek'   ? 'block' : 'none';
+  document.getElementById('tab-toplu').style.display = tab==='toplu' ? 'block' : 'none';
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', (tab==='tek'&&i===0)||(tab==='toplu'&&i===1));
+  });
+}
+const sel=document.getElementById('product-sel');
+const info=document.getElementById('stock-info');
+const optIn=document.getElementById('opt-in');
+const optOut=document.getElementById('opt-out');
+document.querySelectorAll('#tab-tek input[name="type"]').forEach(r=>{
+  r.addEventListener('change',()=>{
+    optIn.classList.toggle('selected',r.value==='in'&&r.checked);
+    optOut.classList.toggle('selected',r.value==='out'&&r.checked);
+  });
 });
+optIn&&optIn.classList.add('selected');
+sel&&sel.addEventListener('change',()=>{
+  const opt=sel.selectedOptions[0];
+  if(!opt.value){info.style.display='none';return;}
+  info.style.display='block';
+  info.textContent=`Mevcut stok: ${opt.dataset.stock} ${opt.dataset.unit}`;
+});
+const bulkIn=document.getElementById('bulk-opt-in');
+const bulkOut=document.getElementById('bulk-opt-out');
+document.querySelectorAll('input[name="bulk_type"]').forEach(r=>{
+  r.addEventListener('change',()=>{
+    bulkIn.classList.toggle('selected',r.value==='in'&&r.checked);
+    bulkOut.classList.toggle('selected',r.value==='out'&&r.checked);
+  });
+});
+bulkIn&&bulkIn.classList.add('selected');
+function toggleRow(cb){
+  const row=cb.closest('tr');
+  const qty=row.querySelector('.bulk-qty');
+  qty.disabled=!cb.checked;
+  qty.style.background=cb.checked?'var(--surface)':'#F8F8F6';
+  qty.style.color=cb.checked?'var(--text)':'var(--text-muted)';
+  if(cb.checked)qty.focus();
+  updateSummary();
+}
+function toggleAll(master){
+  document.querySelectorAll('.bulk-check').forEach(cb=>{
+    if(cb.closest('tr').style.display==='none')return;
+    cb.checked=master.checked;
+    toggleRow(cb);
+  });
+}
+function updateSummary(){
+  const n=document.querySelectorAll('.bulk-check:checked').length;
+  document.getElementById('bulk-count').textContent=n;
+  document.getElementById('bulk-summary').style.display=n>0?'block':'none';
+  document.getElementById('bulk-submit').disabled=n===0;
+}
+function filterBulk(q){
+  q=q.toLowerCase();
+  document.querySelectorAll('.bulk-row').forEach(row=>{
+    row.style.display=row.dataset.name.includes(q)?'':'none';
+  });
+}
+function clearBulk(){
+  document.querySelectorAll('.bulk-check').forEach(cb=>{cb.checked=false;toggleRow(cb);});
+  document.getElementById('check-all').checked=false;
+  document.getElementById('bulk-search').value='';
+  filterBulk('');
+}
 </script>
-
 {% endblock %}
