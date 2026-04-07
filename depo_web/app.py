@@ -426,5 +426,51 @@ with app.app_context():
     except Exception as e:
         print(f"DB init error: {e}")
 
+# ── Bulk Movement ───────────────────────────────────────────────────────────────────
+@app.route("/movements/bulk", methods=["POST"])
+@login_required
+def bulk_movements():
+    bulk_type = request.form.get("bulk_type", "in")
+    bulk_note = request.form.get("bulk_note", "").strip()
+    ids       = request.form.getlist("selected_ids")
+
+    if not ids:
+        flash(t("error_fields"))
+        return redirect(url_for("movements"))
+
+    conn = get_db(); cur = conn.cursor()
+    errors = []
+
+    for uid in ids:
+        try:
+            qty = int(request.form.get(f"qty_{uid}", 0))
+            if qty <= 0:
+                continue
+            cur.execute("SELECT stock FROM products WHERE id=%s", (uid,))
+            row = cur.fetchone()
+            if not row:
+                continue
+            new_stock = row["stock"] + (qty if bulk_type == "in" else -qty)
+            if new_stock < 0:
+                cur.execute("SELECT name FROM products WHERE id=%s", (uid,))
+                name = cur.fetchone()["name"]
+                errors.append(name)
+                continue
+            cur.execute("UPDATE products SET stock=%s WHERE id=%s", (new_stock, uid))
+            cur.execute("""INSERT INTO movements
+                (product_id,type,quantity,stock_after,note,created_by)
+                VALUES (%s,%s,%s,%s,%s,%s)""",
+                (uid, bulk_type, qty, new_stock, bulk_note, session["user_id"]))
+        except Exception:
+            continue
+
+    conn.commit(); cur.close(); conn.close()
+
+    if errors:
+        flash(f"Yetersiz stok: {', '.join(errors)}")
+    else:
+        flash(t("saved"))
+    return redirect(url_for("movements"))
+
 if __name__ == "__main__":
     app.run(debug=True)
