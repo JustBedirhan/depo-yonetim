@@ -352,7 +352,7 @@ def movements():
         cur.close(); conn.close()
         return redirect(url_for("movements"))
 
-    cur.execute("SELECT id,name,stock,unit FROM products ORDER BY name")
+    cur.execute("SELECT id,name,stock,unit,min_stock,category FROM products ORDER BY name")
     products = cur.fetchall()
     cur.close(); conn.close()
     return render_template("movements.html", products=products)
